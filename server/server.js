@@ -13,7 +13,7 @@ let db = new sqlite.Database('database/Kalend', (err) => {
 });
 
 const app = express();
-const port = 3000;
+const port = 8080;
 
 //Middleware
 middlewareConfig(app);
