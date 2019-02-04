@@ -1,8 +1,8 @@
-const express = require("express");
-const path = require("path");
-const bodyParser = require("body-parser");
-const index = require("./routes/index");
-const sqlite = require("sqlite3").verbose();
+const express = require('express');
+const path = require('path');
+const bodyParser = require('body-parser');
+const index = require('./routes/index');
+const sqlite = require('sqlite3').verbose();
 const middlewareConfig = require('./config/middlewares');
 
 let db = new sqlite.Database('database/Kalend', (err) => {
@@ -19,20 +19,20 @@ const port = 3000;
 middlewareConfig(app);
 
 //views
-app.set("views",  path.join(__dirname, "views"));
-app.set("view engine", "ejs");
-app.engine("html", require("ejs").renderFile);
+app.set('views',  path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+app.engine('html', require('ejs').renderFile);
 
 //Body parser MW
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
 
 //Routes
-app.use("/", index);
+app.use('/', index);
 
 app.listen(port, () => {
-    console.log("Server running on port", port);
-})
+    console.log('Server running on port', port);
+});
 
 /*
 //const socket_io = require("socket.io");
