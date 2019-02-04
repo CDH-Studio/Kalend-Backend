@@ -2,18 +2,10 @@ const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 const index = require('./routes/index');
-const sqlite = require('sqlite3').verbose();
 const middlewareConfig = require('./config/middlewares');
 
-let db = new sqlite.Database('database/Kalend', (err) => {
-    if (err) {
-        return console.error(err.message);
-    }
-    console.log('Connected to the Kalend SQLite Database');
-});
-
 const app = express();
-const port = 3000;
+const port = 8080;
 
 //Middleware
 middlewareConfig(app);
@@ -31,7 +23,7 @@ app.use(bodyParser.urlencoded({extended:true}));
 app.use('/', index);
 
 app.listen(port, () => {
-    console.log('Server running on port', port);
+	console.log('Server running on port', port);
 });
 
 /*
@@ -42,14 +34,14 @@ app.listen(port, () => {
 // app.use("/api", drivers);
 
 io.listen(app.listen(port, () => {
-    console.log("Server running on port", port);
+	console.log("Server running on port", port);
 }));
 
 app.io = io.on("connection", (socket) => {
-    console.log("Socket connected: " + socket.id);
+	console.log("Socket connected: " + socket.id);
 
-    socket.on("sendData", (obj) => {
-        console.log("Recieved in the server", obj)
-    })
+	socket.on("sendData", (obj) => {
+		console.log("Recieved in the server", obj)
+	})
 });
 */
