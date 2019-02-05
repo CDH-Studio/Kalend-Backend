@@ -24,8 +24,7 @@ router.get('/api/users', function(req, res){
 			console.log(err);
 			return err.message;
 		}
-		console.log(rows);
-		res.send(rows);
+		res.send(JSON.stringify(rows));
 	});
 });
 
