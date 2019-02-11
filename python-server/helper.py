@@ -14,10 +14,8 @@ def read_image(filename):
 def extract_contours(img):
     # Gray scale the image
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
     # Apply threshold to the image
     ret, mask = cv2.threshold(gray, 220, 225, cv2.THRESH_BINARY_INV)
-
     # Extract image countours 
     contours, h = cv2.findContours(mask, 1, 2)
 
