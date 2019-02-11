@@ -1,11 +1,9 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-
 from PIL import Image
 from pytesseract import image_to_string
 from helper import save_json, read_image, extract_contours
-
 
 def cropContours(contours):
     images = []
@@ -31,7 +29,6 @@ def cropContours(contours):
             images.append(temp_img)
 
     return images
-
 
 # Read the calendar image
 img = read_image('./images/calendar.png')
