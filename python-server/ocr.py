@@ -29,12 +29,13 @@ def cropContours(contours):
             images.append(temp_img)
 
     return images
-
 # Read the calendar image
 img = read_image('./images/calendar.png')
-# Get image contours
-contours, h = extract_contours(img)
-# Cropped Images
-cropped_images = cropContours(contours)
-# Export to Array as a JSON file
-save_json(cropped_images, 'data')
+def runOCR():  
+    # Get image contours
+    contours, h = extract_contours(img)
+    # Cropped Images
+    cropped_images = cropContours(contours)
+    # Export to Array as a JSON file
+    save_json(cropped_images, 'data')
+    return cropped_images
