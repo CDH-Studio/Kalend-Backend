@@ -23,7 +23,7 @@ router.get('/api/analyzepicture', function(req, res){
 	request('http://localhost:5000/test', function (error, response, body) {
 		if (!error && response.statusCode == 200) {
 			console.log('This is the body:', body); // Print the google web page.\
-			res.send(body)
+			res.send(body);
 		}
 	});
 	
