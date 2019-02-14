@@ -31,16 +31,14 @@ def cropContours(contours):
             }
             images.append(temp_img)
     return images
-
 # Read the calendar image
 img = read_image('./images/calendar.png')
-# GrayScale the image
-gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-# Apply threshold to the image
-ret, mask = cv2.threshold(gray, 220, 225, cv2.THRESH_BINARY_INV)
-# Extract image countours 
-contours, h = cv2.findContours(mask, 1, 2)
-# Cropped Images
-cropped_images = cropContours(contours)
-# Export to Array as a JSON file
-save_json(cropped_images, 'data')
+
+def runOCR():  
+    # Get image contours
+    contours, h = extract_contours(img)
+    # Cropped Images
+    cropped_images = cropContours(contours)
+    # Export to Array as a JSON file
+    save_json(cropped_images, 'data')
+    return cropped_images
