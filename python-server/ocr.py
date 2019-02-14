@@ -3,7 +3,7 @@ import cv2
 import matplotlib.pyplot as plt
 from PIL import Image
 from pytesseract import image_to_string
-from helper import save_json, read_image
+from helper import save_json, read_image,extract_contours
 
 def cropContours(contours):
     images = []
