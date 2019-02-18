@@ -5,13 +5,13 @@ from ocr import runOCR
 app = Flask(__name__)
 
 @app.route("/")
-def hello():
+def test():
     return 'Hello World!'
 
-@app.route("/test")
-def hello2():
+@app.route("/analyzepicture")
+def extractInfo():
     data = runOCR()
-    print data
+    print (data)
     return jsonify({'data': data})
 
 if __name__ == '__main__':
