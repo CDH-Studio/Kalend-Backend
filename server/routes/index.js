@@ -1,6 +1,7 @@
 let express = require('express');
 let router = express.Router();
 let request = require('request');
+const fs = require('fs');
 const sqlite = require('sqlite3').verbose();
 
 let db = new sqlite.Database('database/Kalend.db', (err) => {
@@ -19,12 +20,13 @@ router.get('/api/test', function(req, res){
 	res.send(data);
 });
 
-router.get('/api/analyzepicture', function(req, res){
-	request('http://localhost:5000/analyzepicture', function (error, response, body) {
-		if (!error && response.statusCode == 200) {
-			console.log('This is the body:', body); // Print the google web page.\
-			res.send(body);
-		}
+router.post('/api/analyzepicture', function(req, res){
+	request.post({
+		headers: {'content-type' : 'application/x-www-form-urlencoded'},
+		url:     'http://localhost:5000/analyzepicture',
+		body: req.body.data
+	}, function(error, response, body){
+		res.send(body);
 	});
 	
 });

@@ -1,4 +1,5 @@
 import numpy as np
+import base64
 import cv2
 import matplotlib.pyplot as plt
 from PIL import Image
@@ -31,12 +32,18 @@ def cropContours(contours):
             }
             images.append(temp_img)
     return images
-# Read the calendar image
-img = read_image('./images/calendar.png')
 
-def runOCR():  
+img = None
+def runOCR(_encoded_string):
+    global img
+    # For some reason, when sending base64 from nodeJs to Python, the + are replaces with ' '. This causes issues while
+    # decoding back to image( Padding Error)
+    encoded_string = _encoded_string.replace(" ", "+")
+    nparr = np.fromstring(encoded_string.decode('base64'), np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+  
     # Get image contours
-    contours, h = extract_contours(img)
+    contours, h = extract_contours(np.array(img))
     # Cropped Images
     cropped_images = cropContours(contours)
     # Export to Array as a JSON file
