@@ -1,5 +1,7 @@
 import cv2
 import json
+from PIL import Image
+import numpy as np
 
 # Saves an array as a JSON in a file
 def save_json(data, filename):

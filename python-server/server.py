@@ -1,17 +1,23 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import json
 from ocr import runOCR
+from PIL import Image
+import cv2
+import base64
+
 
 app = Flask(__name__)
 
 @app.route("/")
-def hello():
+def test():
     return 'Hello World!'
 
-@app.route("/test")
-def hello2():
-    data = runOCR()
-    print data
+@app.route("/analyzepicture", methods=["POST"])
+def extractInfo():
+    dict_ = request.form.to_dict()
+    _encoded_string = dict_.keys()[0]
+    data = runOCR(_encoded_string)
+
     return jsonify({'data': data})
 
 if __name__ == '__main__':
