@@ -1,4 +1,4 @@
-const arrayToSetQueryString = (columns) => {
+const arrayToQuerySETString = (columns) => {
     let SET  = '';
     columns.forEach((column,idx) => {
 		if (idx == columns.length -1){
@@ -14,5 +14,5 @@ const arrayToSetQueryString = (columns) => {
 
 
 module.exports = {	
-	arrayToSetQueryString
+	arrayToQuerySETString
 };

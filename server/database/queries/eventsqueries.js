@@ -1,7 +1,20 @@
 let db = require('../index');
+let helper = require('../helper');
 
-const insertEvent = async (event, userid) => {
-	const {summary, category, start, end, recurrence, location, description, created, updated, id} = event;
+/**
+ * Update Event entity in the database
+ * 
+ * @param {Object} event object that containts event information
+ * @param {String} userid id of the user the event corresponds to
+ */
+const insertEvent = (event, userid) => {
+    console.log('event', event);
+    let  {summary, category, start, end, recurrence, location, description, created, updated, id} = event;
+    
+    if (start.date){
+        start.dateTime = new Date(start.date).toISOString();
+        end.dateTime = new Date( end.date).toISOString();
+    } 
 
 	return new Promise((resolve, reject) => {
         db.run('INSERT INTO UserEvent(ID,USERID,CATEGORY,START,END,SUMMARY,RECURRENCE,LOCATION,DESCRIPTION,CREATED,UPDATED) VALUES (?,?,?,?,?,?,?,?,?,?,?)', [ id, 
@@ -23,27 +36,87 @@ const insertEvent = async (event, userid) => {
 	});
 }
 
-const updateEvent = async (data) => {
-    const {id, startDate, endDate, schoolID} = data;
-	return new Promise( async (resolve, reject) => {
-        db.run( 'UPDATE UserEvent SET start = ?, end = ? WHERE userid = ?', [startDate, endDate, id], function(err) {
+/**
+ * Update Event entity in the database
+ * 
+ * @param {Array} columns array of strings that represent columns to be updated 
+ * @param {Array} values aray of values corresponding to columns to be updated 
+ */
+const updateEvent = (event) => {
+    const {summary, start, end, recurrence, location, description, updated, id, userID} = event;
+   
+    let columns = ['START', 'END', 'SUMMARY', 'RECURRENCE', 'LOCATION', 'DESCRIPTION', 'UPDATED', 'USERID']
+    let set = helper.arrayToQuerySETString(columns);	
+    let values = [start.dateTime, end.dateTime, summary, recurrence, location, description, updated, userID];
+
+	return new Promise((resolve, reject) => {
+        db.run( `UPDATE UserEvent SET ${set} WHERE ID = ?`, values, function(err) {
            
             if (err) reject(err);
-            resolve({startDate, endDate, schoolID});
+            resolve(true);
             console.log(`Row(s) updated: ${this.changes}`);
           });
 	});
 }
 
+
+/**
+ * Delete Event entity from the database
+ * 
+ * @param {String} id ID of the Event
+ */
 const deleteEvent = async (id) => {
 	return new Promise( async (resolve, reject) => {
 
 	});
 }
 
-const getEvent = async (id) => {
+
+/**
+ * Delete Event entity from the database
+ * 
+ * @param {String} id ID of the Event
+ */
+const upsertEvent = async (event) => {
+    let {id} = event;
+	return new Promise( async (resolve, reject) => {
+        getEvent(id)
+            .then(row => {
+                if (row) {
+                    updateEvent(event);
+                } else {
+                    console.log('here', event);
+                    insertEvent(event, event.userID);
+                }
+            })
+            .catch(err => {
+                console.log('err upserting event', err);
+            });
+	});
+}
+
+/**
+ * Get Event entity from the database
+ * 
+ * @param {String} eventID ID of the Event
+ */
+const getEvent = (eventID) => {
 	return new Promise( (resolve, reject) => {
-		db.all(`SELECT * FROM UserEvent WHERE ID = ?`,[id], (err, rows ) => {
+		db.get(`SELECT * FROM UserEvent WHERE ID = ?`,[eventID], (err, rows ) => {
+            if(err) reject(err);
+            resolve(rows);
+        });
+	});
+}
+
+/**
+ * Get all Events for the specific user
+ * 
+ * @param {String} userID ID of the user
+ */
+const getEvents = (userID) => {
+	return new Promise( (resolve, reject) => {
+		db.all(`SELECT * FROM UserEvent WHERE USERID = ?`,[userID], (err, rows ) => {
             if(err) reject(err);
             resolve(rows);
         });
@@ -54,5 +127,7 @@ module.exports = {
 	insertEvent,
     updateEvent,
     deleteEvent,
-    getEvent
+    getEvent,
+    getEvents,
+    upsertEvent
 };
