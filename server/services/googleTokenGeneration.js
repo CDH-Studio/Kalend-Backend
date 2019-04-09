@@ -1,21 +1,21 @@
-var request = require("request");
-const client_secret = require("../client-secret")
+const request = require("request");
+const client_secret = require("../config/client-secret");
 
 /**
  * Gets a new accessToken and a refreshToken (if we didn't get one yet) from the serverAuthToken
  * 
  * @param {String} code The serverAuthCode which would be sent by the client
  */
-function serverAuthentication(code) {
-	var data = {
+let serverAuthentication = (code) => {
+	let data = {
 		code,
 		client_secret: client_secret.CLIENT_SECRET,
 		client_id: client_secret.CLIENT_ID,
 		grant_type: "authorization_code",
-		redirect_uri: "http://localhost"
+		redirect_uri: "http://localhost",
+		access_type: 'offline'
 	};
-
-	makeRequest(data);
+	return makeRequest(data);
 }
 
 /**
@@ -23,15 +23,15 @@ function serverAuthentication(code) {
  * 
  * @param {String} refresh_token The refreshToken of the user
  */
-function getNewAccessToken(refresh_token) {
-	var data = {
+let getNewAccessToken = (refresh_token) => {
+	let data = {
 		client_secret: client_secret.CLIENT_SECRET,
 		client_id: client_secret.CLIENT_ID,
 		refresh_token,
 		grant_type: "refresh_token"
 	};
-
-	makeRequest(data);
+	
+	return makeRequest(data);
 }
 
 /**
@@ -39,33 +39,20 @@ function getNewAccessToken(refresh_token) {
  * 
  * @param {Object} data The data to be sent to Google
  */
-function makeRequest(data) {
-	request({
+let makeRequest = (data) => {
+	return new Promise(function(resolve, reject){
+		request({
 			url: "https://www.googleapis.com/oauth2/v4/token" + getQueryParam(data),
 			method: "POST"
 		},
-		function(error, response, body) {
-			if (error || response.statusCode !== 200) {
-				return updateDatabase(error || {statusCode: response.statusCode});
+			function(error, response, body) {
+				if (error || response.statusCode !== 200) {
+					reject(error);
+				}
+				resolve(JSON.parse(body));
 			}
-			updateDatabase(null, JSON.parse(body));
-		}
-	);
-}
-
-/**
- * Updates the database according to the data sent back from Google's server
- * 
- * @param {Object} error Describes the error of the request call
- * @param {Object} data The data that was sent from the server
- */
-function updateDatabase(error, data) {
-	if (error) {
-		console.log(error);
-	} else {
-		// Update database
-		console.log(data);
-	}
+		);
+	});	
 }
 
 /**
@@ -74,7 +61,7 @@ function updateDatabase(error, data) {
  * @param {Object} query Query parameter object to be appended to the URL
  * @returns {String} A parameter string to be appended to a URL
  */
-function getQueryParam(query) {
+let getQueryParam = (query) => {
 	let text = "?";
 	let keys = Object.keys(query);
 
@@ -86,7 +73,7 @@ function getQueryParam(query) {
 }
 
 // Exports the two functions to be called outside this file
-module.exports = [
+module.exports = {
 	getNewAccessToken,
 	serverAuthentication
-];
+};
