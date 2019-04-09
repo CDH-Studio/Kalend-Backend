@@ -1,7 +1,6 @@
 const request = require('request');
 
 let apiHelperCall = (URL, method, data) => {
-    console.log('data', data);
     let fetch = request.get;
 
 	let fetchData = {

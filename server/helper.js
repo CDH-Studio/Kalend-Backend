@@ -8,10 +8,12 @@ const updateUsersData = () => {
         .then(users => {
             
             users.forEach(async (user) => {
-                const { CALENDARID, ID, REFRESHTOKEN, ACCESSTOKEN } = user;
-                if (REFRESHTOKEN) ACCESSTOKEN = await updateUsersAccessToken({REFRESHTOKEN, ID});
-                
-
+                const { CALENDARID, ID, REFRESHTOKEN, ACCESSTOKEN, SERVERAUTHCODE } = user;
+         
+                if (REFRESHTOKEN) {
+                    ACCESSTOKEN = await updateUsersAccessToken({REFRESHTOKEN, ID});
+                } 
+               
                 if (CALENDARID) {
                     calendarCalls.listEvents(CALENDARID, {ACCESSTOKEN})
                         .then( events => {
@@ -33,13 +35,30 @@ const updateUsersData = () => {
 
 const updateUsersAccessToken = async (data) => {
     let {REFRESHTOKEN, ID} = data;
-    console.log('data', data);
     return new Promise( (resolve, reject) => {
         tokenGenerator.getNewAccessToken(REFRESHTOKEN)
             .then(tokenData => {
                 let {access_token} = tokenData;
                 userQueries.updateUser(['ACCESSTOKEN'],[access_token, ID]);
                 resolve(access_token);
+            })
+            .catch(err => {
+                console.log('err getting new Accesstoken using refresh token');
+                reject(err);
+            });
+    });
+}
+
+
+const updateUsersRefreshToken = async (data) => {
+    let {SERVERAUTHCODE, ID} = data;
+    return new Promise( (resolve, reject) => {
+        tokenGenerator.serverAuthentication(SERVERAUTHCODE)
+            .then(refreshTokenData => {
+                console.log('refreshTokenData',refreshTokenData)
+                //let {access_token} = tokenData;
+                // userQueries.updateUser(['REFRESHTOKEN'],[access_token, ID]);
+                // resolve(access_token);
             })
             .catch(err => {
                 console.log('err getting new Accesstoken using refresh token');

@@ -19,32 +19,32 @@ router.post('/api/analyzepicture', (req, res) => {
 	
 });
 
-// router.get('/api/users', (req, res) => {
-// 	db.all('SELECT * FROM USER', (err, rows) => {
-// 		if(err) {
-// 			console.log(err);
-// 			return err.message;
-// 		}
-// 		res.send(JSON.stringify(rows));
-// 	});
-// });
-
 router.post('/api/logUser', async (req, res) => {
-	const { serverAuthCode, accessToken, calendarID} = req.body;
+	const { serverAuthCode, calendarID} = req.body;
 	let {id, email, name, photo} = req.body.user;
 
-	let tokenData = await tokenGenerator.serverAuthentication(serverAuthCode);
-	let { access_token,  refresh_token }  = tokenData;
 
-	const user = {id, name, email, photo, serverAuthCode, calendarID};
-	user.accessToken = access_token;
-	user.refresToken = refresh_token;
+	let tokenData = await tokenGenerator.serverAuthentication(serverAuthCode);
+	let { refresh_token, access_token }  = tokenData;
+	let user = {id, name, email, photo, serverAuthCode, accessToken: access_token, calendarID};
+	let columns;
+	let values;
+
+	if (refresh_token) {
+		
+		user.refreshToken = refresh_token;
+		columns = ['FULLNAME', 'EMAIL', 'SERVERAUTHCODE', 'CALENDARID', 'ACCESSTOKEN', `REFRESHTOKEN`]
+		values = [name, email, serverAuthCode, calendarID, access_token, refresh_token, id]
+	} else {
+		columns = ['FULLNAME', 'EMAIL', 'SERVERAUTHCODE', 'CALENDARID', 'ACCESSTOKEN']
+		values = [name, email, serverAuthCode, calendarID, access_token, id]
+	}
+ 	
 
 	userQueries.getUser(id)
 		.then((row) => {
 			if (row) {
-				const columns = ['FULLNAME', 'EMAIL', 'SERVERAUTHCODE', 'CALENDARID', 'ACCESSTOKEN', `REFRESHTOKEN`]
-				const values = [name, email, serverAuthCode, calendarID, access_token, refresh_token, id]
+			
 
 				userQueries.updateUser(columns, values)
 					.then( () => {
@@ -132,8 +132,7 @@ router.post('/api/storeGeneratedCalendars', async (req,res) =>  {
 		promises.push(eventQueries.insertEvent(event, req.session.userID));
 	});
 
-	Promise.all(promises).then(data => {
-		console.log('data', promises);
+	Promise.all(promises).then(() => {
 		res.send(true);
 	})
 	.catch(err => {
@@ -168,9 +167,12 @@ router.post('/api/storeUserHours', (req, res) => {
 });
 
 router.get('/api/getEvents', (req,res) =>  {
+	console.log('ID', req.session.userID);
 	if (req.session.userID) {
+		
 		eventQueries.getEvents(req.session.userID)
 			.then(events => {
+				console.log('here', events);
 				res.send(events);
 			});
 	}

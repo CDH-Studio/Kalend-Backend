@@ -8,16 +8,17 @@ let helper = require('../helper');
  * @param {String} userid id of the user the event corresponds to
  */
 const insertEvent = (event, userid) => {
-    console.log('event', event);
     let  {summary, category, start, end, recurrence, location, description, created, updated, id} = event;
-    
+    let allDay = false;
+
     if (start.date){
         start.dateTime = new Date(start.date).toISOString();
         end.dateTime = new Date( end.date).toISOString();
+        allDay = true;
     } 
 
 	return new Promise((resolve, reject) => {
-        db.run('INSERT INTO UserEvent(ID,USERID,CATEGORY,START,END,SUMMARY,RECURRENCE,LOCATION,DESCRIPTION,CREATED,UPDATED) VALUES (?,?,?,?,?,?,?,?,?,?,?)', [ id, 
+        db.run('INSERT INTO UserEvent(ID,USERID,CATEGORY,START,END,SUMMARY,RECURRENCE,LOCATION,DESCRIPTION,CREATED,UPDATED, ALLDAY) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', [ id, 
             userid, 
             category, 
             start.dateTime, 
@@ -27,7 +28,8 @@ const insertEvent = (event, userid) => {
             location,
             description,
             created,
-            updated 
+            updated,
+            allDay 
             ], function(err) {
             console.log('err', err)
             if (err) reject(err);
@@ -43,15 +45,21 @@ const insertEvent = (event, userid) => {
  * @param {Array} values aray of values corresponding to columns to be updated 
  */
 const updateEvent = (event) => {
-    const {summary, start, end, recurrence, location, description, updated, id, userID} = event;
-   
-    let columns = ['START', 'END', 'SUMMARY', 'RECURRENCE', 'LOCATION', 'DESCRIPTION', 'UPDATED', 'USERID']
-    let set = helper.arrayToQuerySETString(columns);	
-    let values = [start.dateTime, end.dateTime, summary, recurrence, location, description, updated, userID];
+    const {summary, start, end, recurrence, location, description, updated, id} = event;
+    let columns = ['START', 'END', 'SUMMARY', 'RECURRENCE', 'LOCATION', 'DESCRIPTION', 'UPDATED','ALLDAY']
+    let set = helper.arrayToQuerySETString(columns);
+    let allDay = false;
+
+    if (start.date){
+        start.dateTime = new Date(start.date).toISOString();
+        end.dateTime = new Date( end.date).toISOString();
+        allDay = true;
+    } 
+
+    let values = [start.dateTime, end.dateTime, summary, recurrence, location, description, updated, allDay, id];
 
 	return new Promise((resolve, reject) => {
         db.run( `UPDATE UserEvent SET ${set} WHERE ID = ?`, values, function(err) {
-           
             if (err) reject(err);
             resolve(true);
             console.log(`Row(s) updated: ${this.changes}`);
@@ -85,7 +93,6 @@ const upsertEvent = async (event) => {
                 if (row) {
                     updateEvent(event);
                 } else {
-                    console.log('here', event);
                     insertEvent(event, event.userID);
                 }
             })

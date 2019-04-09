@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS  UserEvent (
     `USERID`                TEXT NOT NULL,
     `CATEGORY`               TEXT,
     `START`                 DATE NOT NULL,
+    `ALLDAY`                BOOLEAN  DEFAULT FALSE,
     `END`                   DATE NOT NULL,
     `SUMMARY`                 TEXT NOT NULL,
     `RECURRENCE`                TEXT,
