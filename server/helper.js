@@ -5,10 +5,10 @@ const tokenGenerator = require('./services/googleTokenGeneration');
 
 const updateUsersData = () => {
     userQueries.getUsers()
-        .then(users => {
+        .then(users => {    
             
             users.forEach(async (user) => {
-                const { CALENDARID, ID, REFRESHTOKEN, ACCESSTOKEN, SERVERAUTHCODE } = user;
+                let { CALENDARID, ID, REFRESHTOKEN, ACCESSTOKEN} = user;
          
                 if (REFRESHTOKEN) {
                     ACCESSTOKEN = await updateUsersAccessToken({REFRESHTOKEN, ID});
@@ -16,8 +16,9 @@ const updateUsersData = () => {
                
                 if (CALENDARID) {
                     calendarCalls.listEvents(CALENDARID, {ACCESSTOKEN})
-                        .then( events => {
-                            events.items.forEach(event => {
+                        .then( body => {
+                            if (body.error) return;
+                            body.items.forEach(event => {
                                 event.userID = ID;
                                 eventsQueries.upsertEvent(event)
                             });
@@ -41,24 +42,6 @@ const updateUsersAccessToken = async (data) => {
                 let {access_token} = tokenData;
                 userQueries.updateUser(['ACCESSTOKEN'],[access_token, ID]);
                 resolve(access_token);
-            })
-            .catch(err => {
-                console.log('err getting new Accesstoken using refresh token');
-                reject(err);
-            });
-    });
-}
-
-
-const updateUsersRefreshToken = async (data) => {
-    let {SERVERAUTHCODE, ID} = data;
-    return new Promise( (resolve, reject) => {
-        tokenGenerator.serverAuthentication(SERVERAUTHCODE)
-            .then(refreshTokenData => {
-                console.log('refreshTokenData',refreshTokenData)
-                //let {access_token} = tokenData;
-                // userQueries.updateUser(['REFRESHTOKEN'],[access_token, ID]);
-                // resolve(access_token);
             })
             .catch(err => {
                 console.log('err getting new Accesstoken using refresh token');

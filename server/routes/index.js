@@ -172,7 +172,6 @@ router.get('/api/getEvents', (req,res) =>  {
 		
 		eventQueries.getEvents(req.session.userID)
 			.then(events => {
-				console.log('here', events);
 				res.send(events);
 			});
 	}

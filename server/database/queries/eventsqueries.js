@@ -49,6 +49,7 @@ const updateEvent = (event) => {
     let columns = ['START', 'END', 'SUMMARY', 'RECURRENCE', 'LOCATION', 'DESCRIPTION', 'UPDATED','ALLDAY']
     let set = helper.arrayToQuerySETString(columns);
     let allDay = false;
+    let recrr = (recurrence) ? recurrence[0] : recurrence
 
     if (start.date){
         start.dateTime = new Date(start.date).toISOString();
@@ -56,7 +57,7 @@ const updateEvent = (event) => {
         allDay = true;
     } 
 
-    let values = [start.dateTime, end.dateTime, summary, recurrence, location, description, updated, allDay, id];
+    let values = [start.dateTime, end.dateTime, summary, recrr, location, description, updated, allDay, id];
 
 	return new Promise((resolve, reject) => {
         db.run( `UPDATE UserEvent SET ${set} WHERE ID = ?`, values, function(err) {

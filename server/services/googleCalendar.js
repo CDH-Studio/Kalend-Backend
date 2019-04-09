@@ -17,9 +17,8 @@ let apiHelperCall = (URL, method, data) => {
         fetch = request.post
     }
 
-	return  new Promise((resolve, reject) => {
+	return  new Promise((resolve) => {
         fetch(fetchData, (error, response, body) => {
-            if(error) reject(error);
             resolve(JSON.parse(body));
         });
     });
