@@ -46,11 +46,9 @@ let makeRequest = (data) => {
 			method: "POST"
 		},
 			function(error, response, body) {
-			
-				if (error || response.statusCode !== 200) {
-					reject(error);
-				}
-				resolve(JSON.parse(body));
+				if (error || response.statusCode !== 200) reject(error);
+
+				if (body) resolve(JSON.parse(body));	
 			}
 		);
 	});	

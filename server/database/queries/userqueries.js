@@ -27,9 +27,27 @@ const updateUser = (columns,values) => {
 	const set = helper.arrayToQuerySETString(columns);	
 
 	return new Promise( async (resolve, reject) => {
-		db.run( `UPDATE USER SET ${set} WHERE ID = ?`, values, function(err) {
+		db.run( `UPDATE User SET ${set} WHERE ID = ?`, values, function(err) {
             if (err) reject(err);
             resolve();
+            // console.log(`Row(s) updated: ${this.changes}`);
+          });
+	});
+}
+
+/**
+ * Update User entity in the database
+ * 
+ * @param {Array} columns array of strings that represent columns to be updated 
+ * @param {Array} values aray of values corresponding to columns to be updated 
+ */
+const getUserInfo = (columns, id) => {
+	const select = helper.arrayToQuerySELECTString(columns);
+
+	return new Promise( async (resolve, reject) => {
+		db.get( `SELECT ${select} FROM User WHERE ID = ?`, [id], function(err, row) {
+            if (err) reject(err);
+            resolve(row);
             console.log(`Row(s) updated: ${this.changes}`);
           });
 	});
@@ -78,5 +96,6 @@ module.exports = {
 	insertUser,
 	getUser,
 	updateUser,
-	getUsers
+	getUsers,
+	getUserInfo
 };

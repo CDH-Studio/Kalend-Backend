@@ -63,7 +63,6 @@ const updateEvent = (event) => {
         db.run( `UPDATE UserEvent SET ${set} WHERE ID = ?`, values, function(err) {
             if (err) reject(err);
             resolve(true);
-            console.log(`Row(s) updated: ${this.changes}`);
           });
 	});
 }

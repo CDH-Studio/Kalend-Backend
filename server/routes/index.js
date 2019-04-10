@@ -23,7 +23,6 @@ router.post('/api/logUser', async (req, res) => {
 	const { serverAuthCode, calendarID} = req.body;
 	let {id, email, name, photo} = req.body.user;
 
-
 	let tokenData = await tokenGenerator.serverAuthentication(serverAuthCode);
 	let { refresh_token, access_token }  = tokenData;
 	let user = {id, name, email, photo, serverAuthCode, accessToken: access_token, calendarID};
@@ -31,7 +30,6 @@ router.post('/api/logUser', async (req, res) => {
 	let values;
 
 	if (refresh_token) {
-		
 		user.refreshToken = refresh_token;
 		columns = ['FULLNAME', 'EMAIL', 'SERVERAUTHCODE', 'CALENDARID', 'ACCESSTOKEN', `REFRESHTOKEN`]
 		values = [name, email, serverAuthCode, calendarID, access_token, refresh_token, id]
@@ -167,7 +165,6 @@ router.post('/api/storeUserHours', (req, res) => {
 });
 
 router.get('/api/getEvents', (req,res) =>  {
-	console.log('ID', req.session.userID);
 	if (req.session.userID) {
 		
 		eventQueries.getEvents(req.session.userID)
@@ -176,6 +173,28 @@ router.get('/api/getEvents', (req,res) =>  {
 			});
 	}
 });
+
+router.get('/api/getUserInfo', (req,res) =>  {
+	if (req.session.userID) {	
+		userQueries.getUser(req.session.userID)
+			.then(info => {
+				res.send(info);
+			});
+	}
+});
+
+router.post('/api/getUserValues', (req,res) =>  {
+	if (req.session.userID) {
+		if (req.body) {
+			const { columns } = req.body;
+			userQueries.getUserInfo(columns, req.session.userID)
+				.then(info => {
+					res.send(info);
+				});
+		} 
+	}
+});
+  
 
 module.exports = router;
 

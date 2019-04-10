@@ -9,7 +9,7 @@ const updateUsersData = () => {
             
             users.forEach(async (user) => {
                 let { CALENDARID, ID, REFRESHTOKEN, ACCESSTOKEN} = user;
-         
+              
                 if (REFRESHTOKEN) {
                     ACCESSTOKEN = await updateUsersAccessToken({REFRESHTOKEN, ID});
                 } 
@@ -18,6 +18,7 @@ const updateUsersData = () => {
                     calendarCalls.listEvents(CALENDARID, {ACCESSTOKEN})
                         .then( body => {
                             if (body.error) return;
+                            
                             body.items.forEach(event => {
                                 event.userID = ID;
                                 eventsQueries.upsertEvent(event)
