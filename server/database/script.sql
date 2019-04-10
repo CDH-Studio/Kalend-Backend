@@ -13,15 +13,17 @@ CREATE TABLE IF NOT EXISTS User (
     `PHOTOURL`              TEXT
 );
 
+DROP TABLE School;
 CREATE TABLE IF NOT EXISTS School (
     `ID` INTEGER PRIMARY KEY AUTOINCREMENT,
     `NAME`                 TEXT  NOT NULL
 );
 
 
--- INSERT INTO School (NAME) VALUES ('Carleton University');
--- INSERT INTO School (NAME) VALUES('University of Ottawa');
--- DROP TABLE UserSchoolInfo;
+INSERT INTO School (NAME) VALUES ('Carleton University');
+INSERT INTO School (NAME) VALUES('University of Ottawa');
+
+DROP TABLE UserSchoolInfo;
 CREATE TABLE IF NOT EXISTS UserSchoolInfo (
     `USERID`            TEXT   NOT NULL,
     `SCHOOLID`            INTEGER NOT NULL,
@@ -32,14 +34,17 @@ CREATE TABLE IF NOT EXISTS UserSchoolInfo (
     PRIMARY KEY (`USERID`, `SCHOOLID`)
 );
 
+DROP TABLE EventType;
 CREATE TABLE IF NOT EXISTS EventType (
     `ID` INTEGER PRIMARY KEY AUTOINCREMENT,
     `CATEGORY`                 INTEGER  NOT NULL
 );
 
--- INSERT INTO EventType (CATEGORY) VALUES ('AI');
--- INSERT INTO EventType (CATEGORY) VALUES('FIXED');
--- INSERT INTO EventType (CATEGORY) VALUES('SCHOOL');
+
+INSERT INTO EventType (CATEGORY) VALUES ('AI');
+INSERT INTO EventType (CATEGORY) VALUES('FIXED');
+INSERT INTO EventType (CATEGORY) VALUES('SCHOOL');
+
 DROP TABLE UserEvent;
 CREATE TABLE IF NOT EXISTS  UserEvent (
     `ID`                    TEXT PRIMARY KEY  NOT NULL,
@@ -57,5 +62,20 @@ CREATE TABLE IF NOT EXISTS  UserEvent (
     FOREIGN KEY(USERID) REFERENCES User(ID),
     FOREIGN KEY(CATEGORY) REFERENCES EventType(ID)
 );
+
+DROP TABLE UnavailableHours;
+CREATE TABLE IF NOT EXISTS  UnavailableHours (
+    `ID` INTEGER  auto_increment,
+    `USERID`                TEXT NOT NULL,
+    `WEEK`                BOOLEAN NOT NULL,
+    `CATEGORY`               TEXT NOT NULL,
+    `START`                 DATE NOT NULL,
+    `END`                   DATE NOT NULL,
+    `CREATED`                       datetime NOT NULL  DEFAULT current_timestamp,
+    `UPDATED`                       datetime NOT NULL  DEFAULT current_timestamp,
+    FOREIGN KEY(USERID) REFERENCES User(ID),
+    PRIMARY KEY (`WEEK`, `CATEGORY`, `USERID`)
+);
+
 
 END TRANSACTION;

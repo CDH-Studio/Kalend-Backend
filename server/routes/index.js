@@ -1,6 +1,7 @@
 const userQueries =  require('../database/queries/userqueries');
 const schoolInfoQueries =  require('../database/queries/schoolInfoqueries');
 const eventQueries =  require('../database/queries/eventsQueries');
+const unavailableHoursQueries = require('../database/queries/unavailablehours');
 const calendarCalls = require('../services/googleCalendar'); 
 const tokenGenerator = require('../services/googleTokenGeneration');
 
@@ -70,7 +71,7 @@ router.post('/api/logUser', async (req, res) => {
 router.post('/api/updateUser', (req, res) => {
 	const { values, columns } = req.body;
 	const userID = req.session.userID;
-	
+
 	userQueries.updateUser(columns, [...values, userID])
 		.then( () => {
 			res.send(true);
@@ -124,7 +125,7 @@ router.post('/api/storeSchoolInfo', (req, res) => {
 router.post('/api/storeGeneratedCalendars', async (req,res) =>  {
 	console.log('length', req.body.length);
 	let promises = [];
-	await req.body.forEach(event => {
+	req.body.forEach(event => {
 		promises.push(eventQueries.insertEvent(event, req.session.userID));
 	});
 
@@ -132,33 +133,32 @@ router.post('/api/storeGeneratedCalendars', async (req,res) =>  {
 		res.send(true);
 	})
 	.catch(err => {
+		console.log('err', err);
 		res.send(false);
 	});
 	
 });
 
 router.post('/api/storeUserHours', (req, res) => {
-	const { startDate, endDate, value } = req.body;
-	const id = req.session.userID;
-	console.log('id', id);
-	console.log('req.body', req.body);
-	if (req.session.info.schoolInfo != undefined) {
-		res.send(req.session.info.schoolInfo);
-		return;
-	} 
+	if (req.session.userID) {
+		let promises = [];
 
-	db.run('INSERT INTO UserSchoolInfo VALUES (?,?,?,?)', [id, value, startDate, endDate], (err) => {
-	 	if (err) {
-	 		console.log(err);
-			res.send(false)
-			return err.message;
+		if(req.body.length > 0) {
+			req.body.forEach(hour => {
+				promises.push(unavailableHoursQueries.upsertUnavailableHoursInfo(hour, req.session.userID))
+			});
 		}
-		req.session.info.schoolInfo = { startDate, endDate, value};
-		req.session.save();
-		res.send(true);
 
-		return;
-	 });
+		Promise.all(promises).then(() => {
+			res.send(true);
+		})
+		.catch(err => {
+			console.log('err', err);
+			res.send(false);
+		});
+	} else {
+		res.send(false);
+	}
 
 });
 
