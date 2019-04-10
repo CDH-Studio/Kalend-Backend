@@ -20,30 +20,28 @@ router.post('/api/analyzepicture', (req, res) => {
 });
 
 router.post('/api/logUser', async (req, res) => {
-	const { serverAuthCode, calendarID} = req.body;
+	const { serverAuthCode} = req.body;
 	let {id, email, name, photo} = req.body.user;
 
 	let tokenData = await tokenGenerator.serverAuthentication(serverAuthCode);
 	let { refresh_token, access_token }  = tokenData;
-	let user = {id, name, email, photo, serverAuthCode, accessToken: access_token, calendarID};
+	let user = {id, name, email, photo, serverAuthCode, accessToken: access_token};
 	let columns;
 	let values;
 
 	if (refresh_token) {
 		user.refreshToken = refresh_token;
-		columns = ['FULLNAME', 'EMAIL', 'SERVERAUTHCODE', 'CALENDARID', 'ACCESSTOKEN', `REFRESHTOKEN`]
-		values = [name, email, serverAuthCode, calendarID, access_token, refresh_token, id]
+		columns = ['FULLNAME', 'EMAIL', 'SERVERAUTHCODE', 'ACCESSTOKEN', `REFRESHTOKEN`]
+		values = [name, email, serverAuthCode, access_token, refresh_token, id]
 	} else {
-		columns = ['FULLNAME', 'EMAIL', 'SERVERAUTHCODE', 'CALENDARID', 'ACCESSTOKEN']
-		values = [name, email, serverAuthCode, calendarID, access_token, id]
+		columns = ['FULLNAME', 'EMAIL', 'SERVERAUTHCODE','ACCESSTOKEN']
+		values = [name, email, serverAuthCode, access_token, id]
 	}
  	
 
 	userQueries.getUser(id)
 		.then((row) => {
 			if (row) {
-			
-
 				userQueries.updateUser(columns, values)
 					.then( () => {
 						req.session.userID = id;
@@ -72,7 +70,7 @@ router.post('/api/logUser', async (req, res) => {
 router.post('/api/updateUser', (req, res) => {
 	const { values, columns } = req.body;
 	const userID = req.session.userID;
-
+	
 	userQueries.updateUser(columns, [...values, userID])
 		.then( () => {
 			res.send(true);

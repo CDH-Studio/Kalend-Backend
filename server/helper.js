@@ -6,19 +6,18 @@ const tokenGenerator = require('./services/googleTokenGeneration');
 const updateUsersData = () => {
     userQueries.getUsers()
         .then(users => {    
-            
             users.forEach(async (user) => {
                 let { CALENDARID, ID, REFRESHTOKEN, ACCESSTOKEN} = user;
-              
+
                 if (REFRESHTOKEN) {
                     ACCESSTOKEN = await updateUsersAccessToken({REFRESHTOKEN, ID});
                 } 
-               
                 if (CALENDARID) {
+                    
                     calendarCalls.listEvents(CALENDARID, {ACCESSTOKEN})
                         .then( body => {
                             if (body.error) return;
-                            
+
                             body.items.forEach(event => {
                                 event.userID = ID;
                                 eventsQueries.upsertEvent(event)

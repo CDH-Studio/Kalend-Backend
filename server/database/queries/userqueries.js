@@ -10,7 +10,7 @@ const insertUser = (data) => {
 	const {id, email, name, serverAuthCode, accessToken, photo, calendarID, refreshToken} = data;
 
 	return new Promise((resolve, reject) => {
-		db.run('INSERT INTO USER(ID, EMAIL, FULLNAME, SERVERAUTHCODE, ACCESSTOKEN, PHOTOURL, CALENDARID, REFRESHTOKEN) VALUES(?,?,?,?,?,?,?,?)', [id , email, name, serverAuthCode, accessToken, photo, calendarID, refreshToken], (err) => {
+		db.run('INSERT INTO USER(ID, EMAIL, FULLNAME, SERVERAUTHCODE, ACCESSTOKEN, PHOTOURL,REFRESHTOKEN) VALUES(?,?,?,?,?,?,?)', [id , email, name, serverAuthCode, accessToken, photo, refreshToken], (err) => {
 			if (err) reject(err);
 			resolve(id);
 		});
