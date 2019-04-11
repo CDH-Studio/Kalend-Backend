@@ -28,10 +28,10 @@ const updateUser = (columns,values) => {
 
 	return new Promise( async (resolve, reject) => {
 		db.run( `UPDATE User SET ${set} WHERE ID = ?`, values, function(err) {
-            if (err) reject(err);
-            resolve();
-            // console.log(`Row(s) updated: ${this.changes}`);
-          });
+			if (err) reject(err);
+			resolve();
+			// console.log(`Row(s) updated: ${this.changes}`);
+		  });
 	});
 }
 
@@ -46,10 +46,10 @@ const getUserInfo = (columns, id) => {
 
 	return new Promise( async (resolve, reject) => {
 		db.get( `SELECT ${select} FROM User WHERE ID = ?`, [id], function(err, row) {
-            if (err) reject(err);
-            resolve(row);
-            console.log(`Row(s) updated: ${this.changes}`);
-          });
+			if (err) reject(err);
+			resolve(row);
+			console.log(`Row(s) updated: ${this.changes}`);
+		  });
 	});
 }
 

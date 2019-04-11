@@ -21,28 +21,16 @@ router.post('/api/analyzepicture', (req, res) => {
 });
 
 router.post('/api/logUser', async (req, res) => {
-	const { serverAuthCode} = req.body;
+	console.log('called');
+	const { serverAuthCode, accessToken} = req.body;
 	let {id, email, name, photo} = req.body.user;
 
-	let tokenData = await tokenGenerator.serverAuthentication(serverAuthCode);
-	let { refresh_token, access_token }  = tokenData;
-	let user = {id, name, email, photo, serverAuthCode, accessToken: access_token};
-	let columns;
-	let values;
-
-	if (refresh_token) {
-		user.refreshToken = refresh_token;
-		columns = ['FULLNAME', 'EMAIL', 'SERVERAUTHCODE', 'ACCESSTOKEN', `REFRESHTOKEN`]
-		values = [name, email, serverAuthCode, access_token, refresh_token, id]
-	} else {
-		columns = ['FULLNAME', 'EMAIL', 'SERVERAUTHCODE','ACCESSTOKEN']
-		values = [name, email, serverAuthCode, access_token, id]
-	}
- 	
-
 	userQueries.getUser(id)
-		.then((row) => {
+		.then(async (row) => {
 			if (row) {
+				let columns = ['FULLNAME', 'EMAIL','PHOTOURL'];
+				let values = [name, email, photo, id];
+
 				userQueries.updateUser(columns, values)
 					.then( () => {
 						req.session.userID = id;
@@ -51,6 +39,11 @@ router.post('/api/logUser', async (req, res) => {
 						res.send(false);
 					});
 			} else {
+				let tokenData = await tokenGenerator.serverAuthentication(serverAuthCode);
+				let { refresh_token }  = tokenData;
+				console.log('refresh ToKEN', refresh_token ); 
+				let user = { id, name, email, photo, serverAuthCode, accessToken, refreshToken: refresh_token };
+
 				userQueries.insertUser(user)
 					.then(id => {
 						req.session.userID = id;
@@ -126,14 +119,15 @@ router.post('/api/storeGeneratedCalendars', async (req,res) =>  {
 	console.log('length', req.body.length);
 	let promises = [];
 	req.body.forEach(event => {
-		promises.push(eventQueries.insertEvent(event, req.session.userID));
+		event.userID  = req.session.userID;
+		promises.push(eventQueries.upsertEvent(event));
 	});
 
 	Promise.all(promises).then(() => {
 		res.send(true);
 	})
 	.catch(err => {
-		console.log('err', err);
+		console.log('err store Generated Calendars', err);
 		res.send(false);
 	});
 	
@@ -191,6 +185,12 @@ router.post('/api/getUserValues', (req,res) =>  {
 				});
 		} 
 	}
+});
+
+router.get('/api/logOut', (req,res) =>  {
+	console.log('user Logged Out', req.session.userID);
+	req.session.userID = null;
+	res.send(true);
 });
   
 

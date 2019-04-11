@@ -2,26 +2,25 @@ const calendarCalls = require('./services/googleCalendar');
 const userQueries =  require('./database/queries/userqueries');
 const eventsQueries =  require('./database/queries/eventsqueries');
 const tokenGenerator = require('./services/googleTokenGeneration');
+require('./libraries/arrayPrototype');
 
 const updateUsersData = () => {
     userQueries.getUsers()
         .then(users => {    
             users.forEach(async (user) => {
                 let { CALENDARID, ID, REFRESHTOKEN, ACCESSTOKEN} = user;
-
+                console.log('ID', ID);
+                console.log('CALENDARID', CALENDARID);
                 if (REFRESHTOKEN) {
                     ACCESSTOKEN = await updateUsersAccessToken({REFRESHTOKEN, ID});
                 } 
                 if (CALENDARID) {
                     
                     calendarCalls.listEvents(CALENDARID, {ACCESSTOKEN})
-                        .then( body => {
+                        .then( async body => {
+                            //console.log('body', body);
                             if (body.error) return;
-
-                            body.items.forEach(event => {
-                                event.userID = ID;
-                                eventsQueries.upsertEvent(event)
-                            });
+                            let eventsObj = await compareEvents(body.items, ID);
                         })
                         .catch(err => {
                             console.log('err grabbing events', err)
@@ -33,6 +32,21 @@ const updateUsersData = () => {
             console.log('err updating all users data', err);
         });
 }
+
+const compareEvents = async (google, ID) => {
+    let database = await  eventsQueries.getEvents(ID);
+    let deactivate = database.inDatabase(google, database);
+
+    google.forEach(event => {
+        event.userID = ID;
+        eventsQueries.upsertEvent(event);
+    });
+    deactivate.forEach(event => {
+        eventsQueries.deleteEvent(event.ID);
+    })
+    
+    return;
+};
 
 const updateUsersAccessToken = async (data) => {
     let {REFRESHTOKEN, ID} = data;

@@ -7,12 +7,11 @@ let db = require('../index');
  */
 const insertSchoolInfo = (data) => {
 	const {id, startDate, endDate, schoolID} = data;
-
 	return new Promise((resolve, reject) => {
-		db.run('INSERT INTO UserSchoolInfo VALUES (?,?,?,?)', [id, schoolID, startDate, endDate], function(err) {
-            if (err) reject(err);
-            resolve({startDate, endDate, schoolID});
-        });
+		db.run('INSERT INTO UserSchoolInfo(USERID, SCHOOLID, START, END) VALUES (?,?,?,?)', [id, schoolID, startDate, endDate], function(err) {
+			if (err) reject(err);
+			resolve({startDate, endDate, schoolID});
+		});
 	});
 }
 
@@ -22,13 +21,13 @@ const insertSchoolInfo = (data) => {
  * @param {Object} data User's school information
  */
 const updateSchoolInfo = (data) => {
-    const {id, startDate, endDate, schoolID} = data;
+	const {id, startDate, endDate, schoolID} = data;
 	return new Promise((resolve, reject) => {
-        db.run('UPDATE UserSchoolInfo SET START = ?, END = ? WHERE USERID = ? AND SCHOOLID = ?', [startDate, endDate, id, schoolID], function(err) {
-            if (err) reject(err);
-            resolve({startDate, endDate, schoolID});
-            console.log(`Row(s) updated: ${this.changes}`);
-          });
+		db.run('UPDATE UserSchoolInfo SET START = ?, END = ? WHERE USERID = ? AND SCHOOLID = ?', [startDate, endDate, id, schoolID], function(err) {
+			if (err) reject(err);
+			resolve({startDate, endDate, schoolID});
+			console.log(`Row(s) updated: ${this.changes}`);
+		  });
 	});
 }
 
@@ -53,14 +52,14 @@ const deleteSchoolInfo = (id, schoolID) => {
 const getSchoolInfo = (id, schoolID) => {
 	return new Promise( (resolve, reject) => {
 		db.all(`SELECT * FROM UserSchoolInfo WHERE USERID = ? AND SCHOOLID = ?`,[id, schoolID], (err, rows ) => {
-            if(err) reject(err);
-            resolve(rows);
-        });
+			if(err) reject(err);
+			resolve(rows);
+		});
 	});
 }
 
 module.exports = {	
 	getSchoolInfo,
-    insertSchoolInfo,
-    updateSchoolInfo
+	insertSchoolInfo,
+	updateSchoolInfo
 };

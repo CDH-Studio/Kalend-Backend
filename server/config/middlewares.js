@@ -7,7 +7,7 @@ const sess = {
 	secret: 'keyboard cat',
 	cookie: {},
 	resave: false,
-    saveUninitialized: true
+	saveUninitialized: true
 }
   
 module.exports = app => {

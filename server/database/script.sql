@@ -1,6 +1,6 @@
 BEGIN TRANSACTION;
 
--- DROP TABLE User;
+DROP TABLE User;
 CREATE TABLE IF NOT EXISTS User (
     `ID`                 TEXT PRIMARY KEY  NOT NULL,
     `EMAIL`                 TEXT NOT NULL,
@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS User (
     `ACCESSTOKEN`           TEXT,
     `REFRESHTOKEN`           TEXT,
     `PHOTOURL`              TEXT,
+    `ACTIVE`                    BOOLEAN  DEFAULT TRUE,
     `CREATED`                       datetime NOT NULL  DEFAULT current_timestamp,
     `UPDATED`                       datetime NOT NULL  DEFAULT current_timestamp
 );
@@ -71,6 +72,7 @@ CREATE TABLE IF NOT EXISTS  UserEvent (
     `RECURRENCE`                TEXT,
     `LOCATION`                   TEXT,
     `DESCRIPTION`                   TEXT,
+    `ACTIVE`                    BOOLEAN  DEFAULT TRUE,
     `CREATED`                       datetime NOT NULL  DEFAULT current_timestamp,
     `UPDATED`                       datetime NOT NULL  DEFAULT current_timestamp,
     FOREIGN KEY(USERID) REFERENCES User(ID),

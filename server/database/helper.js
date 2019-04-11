@@ -1,15 +1,15 @@
 const arrayToQuerySETString = (columns) => {
-    let SET  = '';
-    columns.forEach((column,idx) => {
+	let SET  = '';
+	columns.forEach((column,idx) => {
 		if (idx == columns.length -1){
 			SET += `${column} = ?`;
 			return;
 		} 
 
 		SET += `${column} = ?,`
-    });
-    
-    return SET;
+	});
+	
+	return SET;
 }
 
 const arrayToQuerySELECTString = (columns) => {
