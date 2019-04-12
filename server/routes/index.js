@@ -21,15 +21,14 @@ router.post('/api/analyzepicture', (req, res) => {
 });
 
 router.post('/api/logUser', async (req, res) => {
-	console.log('called');
 	const { serverAuthCode, accessToken} = req.body;
 	let {id, email, name, photo} = req.body.user;
 
 	userQueries.getUser(id)
 		.then(async (row) => {
 			if (row) {
-				let columns = ['FULLNAME', 'EMAIL','PHOTOURL'];
-				let values = [name, email, photo, id];
+				let columns = ['FULLNAME', 'EMAIL', 'PHOTOURL', 'ACCESSTOKEN'];
+				let values = [name, email, photo, accessToken, id];
 
 				userQueries.updateUser(columns, values)
 					.then( () => {
@@ -45,7 +44,7 @@ router.post('/api/logUser', async (req, res) => {
 				let user = { id, name, email, photo, serverAuthCode, accessToken, refreshToken: refresh_token };
 
 				userQueries.insertUser(user)
-					.then(id => {
+					.then(id => { 
 						req.session.userID = id;
 						res.send(true);
 					})
