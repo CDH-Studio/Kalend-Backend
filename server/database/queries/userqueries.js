@@ -78,6 +78,23 @@ const getUser = (id) => {
 	});
 }
 
+
+/**
+ * Get User entity from the database
+ * 
+ * @param {String} column by the specified column
+ */
+const getSpecificUserInfo = (columns, where) => {
+	const select = helper.arrayToQuerySELECTString(columns);
+
+	return new Promise( (resolve, reject) => {
+		db.get(`SELECT ${select} FROM User WHERE ${where.field} = ?`,[where.value], (err, row ) => {
+			if(err) reject(err);
+			resolve(row);
+		});
+	});
+}
+
 /**
  * Get all Users stored in the database
  * 
@@ -97,5 +114,6 @@ module.exports = {
 	getUser,
 	updateUser,
 	getUsers,
-	getUserInfo
+	getUserInfo,
+	getSpecificUserInfo
 };

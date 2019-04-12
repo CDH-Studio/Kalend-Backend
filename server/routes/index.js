@@ -191,7 +191,15 @@ router.get('/api/logOut', (req,res) =>  {
 	req.session.userID = null;
 	res.send(true);
 });
-  
+
+router.get('/api/getUserSpecificValues', (req,res) =>  {
+	let data = req.body;
+	userQueries.getSpecificUserInfo(data.columns, data.where)
+		.then(info => {
+			res.send(info);
+		});
+});
+
 
 module.exports = router;
 
