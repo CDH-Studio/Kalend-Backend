@@ -2,7 +2,7 @@ const userQueries =  require('../database/queries/userqueries');
 const schoolInfoQueries =  require('../database/queries/schoolInfoqueries');
 const eventQueries =  require('../database/queries/eventsQueries');
 const unavailableHoursQueries = require('../database/queries/unavailablehours');
-const calendarCalls = require('../services/googleCalendar'); 
+const calendarHelper = require('../libraries/permissions');
 const tokenGenerator = require('../services/googleTokenGeneration');
 
 const express = require('express');
@@ -198,6 +198,34 @@ router.post('/api/getUserInfoByColumns', (req,res) =>  {
 		.then(info => {
 			res.send(info);
 		});
+});
+
+
+router.post('/api/setCalendarAccess', (req,res) =>  {
+	if (!req.session.userID) res.send(false);
+
+	let columns = ['CALENDARID', 'ACCESSTOKEN'];
+	let data = req.body;
+	
+	let fromWhere = {
+		field:'EMAIL'
+		value: data.from.email;
+	}
+
+	let toWhere = {
+		field:'EMAIL'
+		value: data.to.email;
+	}
+
+	let fromUser = await userQueries.getSpecificUserInfo(columns, fromWhere);
+	let toUser = await userQueries.getSpecificUserInfo(columns, toWhere);
+	let promises = []
+	promises.push(calendarHelper.addPermissionPerson(data.to.email, fromUser.CALENDARID, fromUser.ACCESSTOKEN));
+	promises.push(calendarHelper.addPermissionPerson(data.from.email, toUser.CALENDARID, toUser.ACCESSTOKEN));
+	
+	Promise.all(promises)
+		.then(success => res.send(true))
+		.catch(err => res.send(false));
 });
 
 
