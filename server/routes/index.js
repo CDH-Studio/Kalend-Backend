@@ -192,7 +192,7 @@ router.get('/api/logOut', (req,res) =>  {
 	res.send(true);
 });
 
-router.get('/api/getUserSpecificValues', (req,res) =>  {
+router.post('/api/getUserInfoByColumns', (req,res) =>  {
 	let data = req.body;
 	userQueries.getSpecificUserInfo(data.columns, data.where)
 		.then(info => {
