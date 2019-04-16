@@ -201,25 +201,26 @@ router.post('/api/getUserInfoByColumns', (req,res) =>  {
 });
 
 
-router.post('/api/setCalendarAccess', (req,res) =>  {
+router.post('/api/setCalendarAccess', async (req,res) =>  {
 	if (!req.session.userID) res.send(false);
 
 	let columns = ['CALENDARID', 'ACCESSTOKEN'];
 	let data = req.body;
-	
-	let fromWhere = {
-		field:'EMAIL'
-		value: data.from.email;
-	}
-
-	let toWhere = {
-		field:'EMAIL'
-		value: data.to.email;
-	}
-
-	let fromUser = await userQueries.getSpecificUserInfo(columns, fromWhere);
-	let toUser = await userQueries.getSpecificUserInfo(columns, toWhere);
 	let promises = []
+
+	let fromData = {
+		field:'EMAIL',
+		value: data.from.email
+	}
+
+	let toData = {
+		field:'EMAIL',
+		value: data.to.email
+	}
+
+	let fromUser = await userQueries.getSpecificUserInfo(columns, fromData);
+	let toUser = await userQueries.getSpecificUserInfo(columns, toData);
+	
 	promises.push(calendarHelper.addPermissionPerson(data.to.email, fromUser.CALENDARID, fromUser.ACCESSTOKEN));
 	promises.push(calendarHelper.addPermissionPerson(data.from.email, toUser.CALENDARID, toUser.ACCESSTOKEN));
 	

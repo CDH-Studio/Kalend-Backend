@@ -1,4 +1,4 @@
-import { insertAccessRule } from '../services/googleCalendar'; 
+const calendarQueries = require('../services/googleCalendar'); 
 
 /**
  * Function called in compare schedule
@@ -6,7 +6,7 @@ import { insertAccessRule } from '../services/googleCalendar';
  * @param {Strings} email The email of the person that will see the user's calendar
  * @param {Strings} calendarID user's calendarID
  */
-export const addPermissionPerson = (email, calendarID, accesstoken) => {
+const addPermissionPerson = (email, calendarID, accesstoken) => {
 	let data = {
 		'role': 'freeBusyReader',
 		'scope': {
@@ -16,7 +16,7 @@ export const addPermissionPerson = (email, calendarID, accesstoken) => {
 	};
 
 	return new Promise((resolve, reject) => {
-		insertAccessRule(calendarID, {ACCESSTOKEN: accesstoken, info:data}, {sendNotifications: false}).then(data => {
+		calendarQueries.insertAccessRule(calendarID, {ACCESSTOKEN: accesstoken, info:data}, {sendNotifications: false}).then(data => {
 			if (data.error)  reject('Cannot add that person');
 			resolve(data);
 		});
