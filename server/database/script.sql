@@ -102,5 +102,19 @@ CREATE TRIGGER IF NOT EXISTS hoursUpdateTrigger AFTER UPDATE ON UnavailableHours
         update UnavailableHours SET UPDATED = datetime('now') WHERE USERID = NEW.USERID;
     END;
 
+CREATE TABLE IF NOT EXISTS  GeneratedCalendars (
+    `ID` INTEGER  auto_increment,
+    `USERID`                TEXT NOT NULL,
+    `START`                 DATE NOT NULL,
+    `END`                   DATE NOT NULL,
+    `SUMMARY`               TEXT NOT NULL,
+    `SELECTED`              BOOLEAN DEFAULT FALSE,
+    `ALLDAY`                BOOLEAN  DEFAULT FALSE,
+    `CREATED`                       datetime NOT NULL  DEFAULT current_timestamp,
+    `UPDATED`                       datetime NOT NULL  DEFAULT current_timestamp,
+    FOREIGN KEY(USERID) REFERENCES User(ID),
+    PRIMARY KEY (`ID`, `USERID`)
+);
+
 
 END TRANSACTION;

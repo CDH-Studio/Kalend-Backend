@@ -2,7 +2,7 @@ const request = require('request');
 
 let apiHelperCall = (URL, method, data) => {
     let fetch = request.get;
-
+	console.log('ACCESSTOKE', data.ACCESSTOKEN);
 	let fetchData = {
 		url: URL,
 		headers: {

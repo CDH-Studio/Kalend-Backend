@@ -4,6 +4,7 @@ const eventQueries =  require('../database/queries/eventsQueries');
 const unavailableHoursQueries = require('../database/queries/unavailablehours');
 const calendarHelper = require('../libraries/permissions');
 const tokenGenerator = require('../services/googleTokenGeneration');
+const calendarQueries = require('../database/queries/calendarqueries');
 
 const express = require('express');
 const router = express.Router();
@@ -114,8 +115,8 @@ router.post('/api/storeSchoolInfo', (req, res) => {
 		})
 });
 
-router.post('/api/storeGeneratedCalendars', async (req,res) =>  {
-	console.log('length', req.body.length);
+router.post('/api/storeInsertedCalendars', async (req,res) =>  {
+	
 	let promises = [];
 	req.body.forEach(event => {
 		event.userID  = req.session.userID;
@@ -130,6 +131,21 @@ router.post('/api/storeGeneratedCalendars', async (req,res) =>  {
 		res.send(false);
 	});
 	
+});
+
+router.post('/api/storeGeneratedCalendars', async (req,res) =>  {
+	console.log('length', req.body.length);
+	let promises = [];
+	req.body.forEach(calendar => {
+		calendar.forEach(event => {
+			event.selected = (calendar.selected) ? calendar.selected: false
+			// event.userID  = req.session.userID;
+			calendarQueries.insertEvent(event, req.session.userID);
+
+		})
+		
+		promises.push(eventQueries.upsertEvent(event));
+	});
 });
 
 router.post('/api/storeUserHours', (req, res) => {
