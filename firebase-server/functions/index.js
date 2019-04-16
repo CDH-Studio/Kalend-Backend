@@ -2,7 +2,7 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 
 admin.initializeApp(functions.config().firebase);
-const sendNotification = require('./helper');
+// const sendNotification = require('./helper');
 
 
 // Take the text parameter passed to this HTTP endpoint and insert it into the
@@ -31,14 +31,16 @@ exports.sendNotification = functions.database.ref('notifications/{id}/{messageId
         if('name' in writtenContent) data = writtenContent;
         else data = writtenContent[messageID]
         
-  
+        var options = {
+          priority: "high",
+        };
         const payload = {
-            notification: {
-                title: `Sharing Request`,
-                body: `${data.name} would like to share calendars with you`  
+            data: {
+                type: 'sharing-schedule',
+                name: data.name
             }
         }
-        return admin.messaging().sendToTopic(userID, payload)
+        return admin.messaging().sendToTopic(userID, payload, options)
           
 });
 
