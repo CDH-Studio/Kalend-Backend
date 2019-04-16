@@ -186,10 +186,10 @@ router.post('/api/getUserValues', (req,res) =>  {
 	}
 });
 
-router.get('/api/logOut', (req,res) =>  {
-	console.log('user Logged Out', req.session.userID);
+router.post('/api/logOut', (req,res) =>  {
+	let id = req.session.userID;
 	req.session.userID = null;
-	res.send(true);
+	res.send(id);
 });
 
 router.post('/api/getUserInfoByColumns', (req,res) =>  {
