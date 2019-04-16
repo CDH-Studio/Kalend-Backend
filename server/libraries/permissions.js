@@ -19,6 +19,9 @@ const addPermissionPerson = (email, calendarID, accesstoken) => {
 		calendarQueries.insertAccessRule(calendarID, {ACCESSTOKEN: accesstoken, info:data}, {sendNotifications: false}).then(data => {
 			if (data.error)  reject('Cannot add that person');
 			resolve(data);
+		})
+		.catch(err => {
+			console.log('errr', err)
 		});
 	});
 };

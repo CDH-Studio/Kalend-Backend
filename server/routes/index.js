@@ -202,31 +202,38 @@ router.post('/api/getUserInfoByColumns', (req,res) =>  {
 
 
 router.post('/api/setCalendarAccess', async (req,res) =>  {
-	if (!req.session.userID) res.send(false);
+	if (!req.session.userID) {
+		res.send(false);
+		return;
+	} 
 
 	let columns = ['CALENDARID', 'ACCESSTOKEN'];
 	let data = req.body;
 	let promises = []
 
-	let fromData = {
+	let requesterData = {
 		field:'EMAIL',
-		value: data.from.email
+		value: data.requester.email
 	}
 
-	let toData = {
+	let accepterData = {
 		field:'EMAIL',
-		value: data.to.email
+		value: data.accepter.email
 	}
 
-	let fromUser = await userQueries.getSpecificUserInfo(columns, fromData);
-	let toUser = await userQueries.getSpecificUserInfo(columns, toData);
+	let requester = await userQueries.getSpecificUserInfo(columns, requesterData);
+	let accepter = await userQueries.getSpecificUserInfo(columns, accepterData);
+
+	if (!requester || !accepter) {
+		res.send(false);
+		return;
+	}
+
+	let accepterPermission = await calendarHelper.addPermissionPerson(data.accepter.email, requester.CALENDARID, requester.ACCESSTOKEN);
+	let requesterPermission = await calendarHelper.addPermissionPerson(data.requester.email, accepter.CALENDARID, accepter.ACCESSTOKEN);
 	
-	promises.push(calendarHelper.addPermissionPerson(data.to.email, fromUser.CALENDARID, fromUser.ACCESSTOKEN));
-	promises.push(calendarHelper.addPermissionPerson(data.from.email, toUser.CALENDARID, toUser.ACCESSTOKEN));
-	
-	Promise.all(promises)
-		.then(success => res.send(true))
-		.catch(err => res.send(false));
+	if (accepterPermission.etag && accepterPermission.etag) res.send(true);
+	else res.send(false);
 });
 
 
