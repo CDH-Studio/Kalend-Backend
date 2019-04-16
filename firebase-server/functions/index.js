@@ -36,8 +36,8 @@ exports.sendNotification = functions.database.ref('notifications/{id}/{messageId
         };
         const payload = {
             data: {
-                title: `Sharing Request`,
-                body: `${data.name} would like to share calendars with you`  
+                type: 'sharing-schedule',
+                name: data.name
             }
         }
         return admin.messaging().sendToTopic(userID, payload, options)
