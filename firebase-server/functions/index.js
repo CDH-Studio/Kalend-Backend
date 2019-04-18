@@ -19,17 +19,12 @@ exports.addMessage = functions.https.onRequest((req, res) => {
 
 
 exports.sendNotification = functions.database.ref('notifications/{id}/{messageId}/')
-    .onWrite((change, context) => {
+    .onCreate((event, context) => {
 
-       
          // Grab the current value of what was written to the Realtime Database
-        const writtenContent = change.after.val();
+        const data = event.val();
         let messageID  = context.params.messageId;
         const userID = context.params.id;
-        let data;
-        
-        if('name' in writtenContent) data = writtenContent;
-        else data = writtenContent[messageID]
         
         var options = {
           priority: "high",
@@ -37,7 +32,9 @@ exports.sendNotification = functions.database.ref('notifications/{id}/{messageId
         const payload = {
             data: {
                 type: 'sharing-schedule',
-                name: data.name
+                name: data.name,
+                notificationId: messageID,
+                email: data.email
             }
         }
         return admin.messaging().sendToTopic(userID, payload, options)
