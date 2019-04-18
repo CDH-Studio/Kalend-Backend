@@ -5,6 +5,8 @@ from PIL import Image
 import cv2
 import base64
 
+import os
+#os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '../../GCP.json'
 
 app = Flask(__name__)
 

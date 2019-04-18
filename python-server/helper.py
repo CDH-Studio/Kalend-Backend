@@ -6,6 +6,9 @@ import numpy as np
 from google.cloud import vision
 from google.cloud.vision import types
 
+import os
+#os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '../../GCP.json'
+
 # Instantiates a client
 client = vision.ImageAnnotatorClient()
 
