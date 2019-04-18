@@ -2,7 +2,7 @@ const userQueries =  require('../database/queries/userqueries');
 const schoolInfoQueries =  require('../database/queries/schoolInfoqueries');
 const eventQueries =  require('../database/queries/eventsQueries');
 const unavailableHoursQueries = require('../database/queries/unavailablehours');
-const calendarCalls = require('../services/googleCalendar'); 
+const calendarHelper = require('../libraries/permissions');
 const tokenGenerator = require('../services/googleTokenGeneration');
 
 const express = require('express');
@@ -186,10 +186,10 @@ router.post('/api/getUserValues', (req,res) =>  {
 	}
 });
 
-router.get('/api/logOut', (req,res) =>  {
-	console.log('user Logged Out', req.session.userID);
+router.post('/api/logOut', (req,res) =>  {
+	let id = req.session.userID;
 	req.session.userID = null;
-	res.send(true);
+	res.send(id);
 });
 
 router.post('/api/getUserInfoByColumns', (req,res) =>  {
@@ -198,6 +198,42 @@ router.post('/api/getUserInfoByColumns', (req,res) =>  {
 		.then(info => {
 			res.send(info);
 		});
+});
+
+
+router.post('/api/setCalendarAccess', async (req,res) =>  {
+	if (!req.session.userID) {
+		res.send(false);
+		return;
+	} 
+
+	let columns = ['CALENDARID', 'ACCESSTOKEN'];
+	let data = req.body;
+	let promises = []
+
+	let requesterData = {
+		field:'EMAIL',
+		value: data.requester.email
+	}
+
+	let accepterData = {
+		field:'EMAIL',
+		value: data.accepter.email
+	}
+
+	let requester = await userQueries.getSpecificUserInfo(columns, requesterData);
+	let accepter = await userQueries.getSpecificUserInfo(columns, accepterData);
+
+	if (!requester || !accepter) {
+		res.send(false);
+		return;
+	}
+
+	let accepterPermission = await calendarHelper.addPermissionPerson(data.accepter.email, requester.CALENDARID, requester.ACCESSTOKEN);
+	let requesterPermission = await calendarHelper.addPermissionPerson(data.requester.email, accepter.CALENDARID, accepter.ACCESSTOKEN);
+	
+	if (accepterPermission.etag && accepterPermission.etag) res.send(true);
+	else res.send(false);
 });
 
 
