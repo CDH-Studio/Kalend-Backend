@@ -1,6 +1,6 @@
 const userQueries =  require('../database/queries/userqueries');
 const schoolInfoQueries =  require('../database/queries/schoolInfoqueries');
-const eventQueries =  require('../database/queries/eventsQueries');
+const eventQueries =  require('../database/queries/eventsqueries');
 const unavailableHoursQueries = require('../database/queries/unavailablehours');
 const calendarHelper = require('../libraries/permissions');
 const tokenGenerator = require('../services/googleTokenGeneration');
@@ -40,9 +40,8 @@ router.post('/api/logUser', async (req, res) => {
 					});
 			} else {
 				let tokenData = await tokenGenerator.serverAuthentication(serverAuthCode);
-				let { refresh_token }  = tokenData;
-				console.log('refresh ToKEN', refresh_token ); 
-				let user = { id, name, email, photo, serverAuthCode, accessToken, refreshToken: refresh_token };
+				let { refresh_token, access_token }  = tokenData;
+				let user = { id, name, email, photo, serverAuthCode, accessToken: access_token, refreshToken: refresh_token };
 
 				userQueries.insertUser(user)
 					.then(id => { 
@@ -127,7 +126,7 @@ router.post('/api/storeInsertedCalendars', async (req,res) =>  {
 		res.send(true);
 	})
 	.catch(err => {
-		console.log('err store Generated Calendars', err);
+		console.log('err storing Inserted Calendars', err);
 		res.send(false);
 	});
 	
