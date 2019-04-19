@@ -28,8 +28,8 @@ router.post('/api/logUser', async (req, res) => {
 	userQueries.getUser(id)
 		.then(async (row) => {
 			if (row) {
-				let columns = ['FULLNAME', 'EMAIL', 'PHOTOURL', 'ACCESSTOKEN'];
-				let values = [name, email, photo, accessToken, id];
+				let columns = ['FULLNAME', 'EMAIL', 'PHOTOURL'];
+				let values = [name, email, photo, id];
 
 				userQueries.updateUser(columns, values)
 					.then( () => {
@@ -202,16 +202,21 @@ router.post('/api/getUserValues', (req,res) =>  {
 });
 
 router.post('/api/logOut', (req,res) =>  {
-	let id = req.session.userID;
-	req.session.userID = null;
-	res.send(id);
+	if (!req.session.userID) res.send(false) 
+	else {
+		let id = req.session.userID;
+		req.session.userID = null;
+		res.send(id);
+	}
+	
 });
 
 router.post('/api/getUserInfoByColumns', (req,res) =>  {
 	let data = req.body;
 	userQueries.getSpecificUserInfo(data.columns, data.where)
 		.then(info => {
-			res.send(info);
+			if(info) res.send(info);
+			else res.send(false);
 		});
 });
 

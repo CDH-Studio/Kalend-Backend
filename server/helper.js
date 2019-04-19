@@ -11,11 +11,8 @@ const updateUsersData = () => {
                 let { CALENDARID, ID, REFRESHTOKEN, ACCESSTOKEN} = user;
                 console.log('ID', ID);
                 console.log('CALENDARID', CALENDARID);
-                if (REFRESHTOKEN) {
+                if (REFRESHTOKEN && CALENDARID) {
                     ACCESSTOKEN = await updateUsersAccessToken({REFRESHTOKEN, ID});
-                } 
-                if (CALENDARID) {
-                    
                     calendarCalls.listEvents(CALENDARID, {ACCESSTOKEN})
                         .then( async body => {
                             //console.log('body', body);
@@ -25,7 +22,7 @@ const updateUsersData = () => {
                         .catch(err => {
                             console.log('err grabbing events', err)
                         });
-                };
+                }
             });
         })
         .catch(err => {
