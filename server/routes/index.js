@@ -1,9 +1,10 @@
 const userQueries =  require('../database/queries/userqueries');
 const schoolInfoQueries =  require('../database/queries/schoolInfoqueries');
-const eventQueries =  require('../database/queries/eventsQueries');
+const eventQueries =  require('../database/queries/eventsqueries');
 const unavailableHoursQueries = require('../database/queries/unavailablehours');
 const calendarHelper = require('../libraries/permissions');
 const tokenGenerator = require('../services/googleTokenGeneration');
+const calendarQueries = require('../database/queries/calendarqueries');
 
 const express = require('express');
 const router = express.Router();
@@ -27,8 +28,8 @@ router.post('/api/logUser', async (req, res) => {
 	userQueries.getUser(id)
 		.then(async (row) => {
 			if (row) {
-				let columns = ['FULLNAME', 'EMAIL', 'PHOTOURL', 'ACCESSTOKEN'];
-				let values = [name, email, photo, accessToken, id];
+				let columns = ['FULLNAME', 'EMAIL', 'PHOTOURL'];
+				let values = [name, email, photo, id];
 
 				userQueries.updateUser(columns, values)
 					.then( () => {
@@ -39,9 +40,8 @@ router.post('/api/logUser', async (req, res) => {
 					});
 			} else {
 				let tokenData = await tokenGenerator.serverAuthentication(serverAuthCode);
-				let { refresh_token }  = tokenData;
-				console.log('refresh ToKEN', refresh_token ); 
-				let user = { id, name, email, photo, serverAuthCode, accessToken, refreshToken: refresh_token };
+				let { refresh_token, access_token }  = tokenData;
+				let user = { id, name, email, photo, serverAuthCode, accessToken: access_token, refreshToken: refresh_token };
 
 				userQueries.insertUser(user)
 					.then(id => { 
@@ -114,8 +114,8 @@ router.post('/api/storeSchoolInfo', (req, res) => {
 		})
 });
 
-router.post('/api/storeGeneratedCalendars', async (req,res) =>  {
-	console.log('length', req.body.length);
+router.post('/api/storeInsertedCalendars', async (req,res) =>  {
+	
 	let promises = [];
 	req.body.forEach(event => {
 		event.userID  = req.session.userID;
@@ -126,10 +126,25 @@ router.post('/api/storeGeneratedCalendars', async (req,res) =>  {
 		res.send(true);
 	})
 	.catch(err => {
-		console.log('err store Generated Calendars', err);
+		console.log('err storing Inserted Calendars', err);
 		res.send(false);
 	});
 	
+});
+
+router.post('/api/storeGeneratedCalendars', async (req,res) =>  {
+	console.log('length', req.body.length);
+	let promises = [];
+	req.body.forEach(calendar => {
+		calendar.forEach(event => {
+			event.selected = (calendar.selected) ? calendar.selected: false
+			// event.userID  = req.session.userID;
+			calendarQueries.insertEvent(event, req.session.userID);
+
+		})
+		
+		promises.push(eventQueries.upsertEvent(event));
+	});
 });
 
 router.post('/api/storeUserHours', (req, res) => {
@@ -187,16 +202,21 @@ router.post('/api/getUserValues', (req,res) =>  {
 });
 
 router.post('/api/logOut', (req,res) =>  {
-	let id = req.session.userID;
-	req.session.userID = null;
-	res.send(id);
+	if (!req.session.userID) res.send(false) 
+	else {
+		let id = req.session.userID;
+		req.session.userID = null;
+		res.send(id);
+	}
+	
 });
 
 router.post('/api/getUserInfoByColumns', (req,res) =>  {
 	let data = req.body;
 	userQueries.getSpecificUserInfo(data.columns, data.where)
 		.then(info => {
-			res.send(info);
+			if(info) res.send(info);
+			else res.send(false);
 		});
 });
 
