@@ -34,7 +34,8 @@ exports.sendNotification = functions.database.ref('notifications/{id}/{messageId
                 type: 'sharing-schedule',
                 name: data.name,
                 notificationId: messageID,
-                email: data.email
+                senderEmail: data.senderEmail,
+                receiverEmail: data.receiverEmail
             }
         }
         return admin.messaging().sendToTopic(userID, payload, options)
