@@ -1,26 +1,16 @@
-let express = require('express');
-let router = express.Router();
-let request = require('request');
-const fs = require('fs');
-const sqlite = require('sqlite3').verbose();
+const userQueries =  require('../database/queries/userqueries');
+const schoolInfoQueries =  require('../database/queries/schoolInfoqueries');
+const eventQueries =  require('../database/queries/eventsqueries');
+const unavailableHoursQueries = require('../database/queries/unavailablehours');
+const calendarHelper = require('../libraries/permissions');
+const tokenGenerator = require('../services/googleTokenGeneration');
+const calendarQueries = require('../database/queries/calendarqueries');
 
-let db = new sqlite.Database('database/Kalend.db', (err) => {
-	if (err) {
-		return console.error(err.message);
-	}
-	console.log('Connected to the Kalend SQLite Database');
-});
+const express = require('express');
+const router = express.Router();
+const request = require('request');
 
-router.get('/', function(req, res){
-	res.render('index.html');
-}); 
-
-router.get('/api/test', function(req, res){
-	let data = {test: 'This is test data'};
-	res.send(data);
-});
-
-router.post('/api/analyzepicture', function(req, res){
+router.post('/api/analyzepicture', (req, res) => {
 	request.post({
 		headers: {'content-type' : 'application/x-www-form-urlencoded'},
 		url:     'http://localhost:5000/analyzepicture',
@@ -31,14 +21,242 @@ router.post('/api/analyzepicture', function(req, res){
 	
 });
 
-router.get('/api/users', function(req, res){
-	db.all('SELECT * FROM USER', function(err, rows) {
-		if(err) {
+router.post('/api/logUser', async (req, res) => {
+	const { serverAuthCode, accessToken} = req.body;
+	let {id, email, name, photo} = req.body.user;
+
+	userQueries.getUser(id)
+		.then(async (row) => {
+			if (row) {
+				let columns = ['FULLNAME', 'EMAIL', 'PHOTOURL'];
+				let values = [name, email, photo, id];
+
+				userQueries.updateUser(columns, values)
+					.then( () => {
+						req.session.userID = id;
+						res.send(true);
+					}).catch(err => {
+						res.send(false);
+					});
+			} else {
+				let tokenData = await tokenGenerator.serverAuthentication(serverAuthCode);
+				let { refresh_token, access_token }  = tokenData;
+				let user = { id, name, email, photo, serverAuthCode, accessToken: access_token, refreshToken: refresh_token };
+
+				userQueries.insertUser(user)
+					.then(id => { 
+						req.session.userID = id;
+						res.send(true);
+					})
+					.catch(err => {
+						console.log('err', err);
+						res.send(false);
+					});
+			}
+		})
+		.catch((err) => {
 			console.log(err);
-			return err.message;
-		}
-		res.send(JSON.stringify(rows));
+			res.send(false);
+		});
+});
+
+router.post('/api/updateUser', (req, res) => {
+	const { values, columns } = req.body;
+	const userID = req.session.userID;
+
+	userQueries.updateUser(columns, [...values, userID])
+		.then( () => {
+			res.send(true);
+		}).catch(err => {
+			res.send(false);
+		});
+});
+
+
+router.post('/api/storeSchoolInfo', (req, res) => {
+	const { startDate, endDate, value } = req.body;
+	const id = req.session.userID;
+	const schoolID = value;
+	console.log('req.sessions.school', req.session.schoolInfo)
+	let schoolInfo = {id, startDate, endDate, schoolID};
+
+	schoolInfoQueries.getSchoolInfo(id, schoolID) 
+		.then((rows) => {
+			if (rows.length > 0) {
+				schoolInfoQueries.updateSchoolInfo(schoolInfo)
+					.then(data => {
+						req.session.schoolInfo = data;
+						res.send(true);
+						return;
+					})
+					.catch(err => {
+						console.log('err', err);
+						res.send(false);
+						return err;
+					});
+			} else {
+				schoolInfoQueries.insertSchoolInfo(schoolInfo)
+					.then(data => {
+						req.session.schoolInfo = data;
+						res.send(true);
+						return;
+					})
+					.catch(err => {
+						console.log('err', err);
+						res.send(false);
+						return err;
+					});
+			}
+
+		}).catch((err) => {
+			res.send(false);
+			return err;
+		})
+});
+
+router.post('/api/storeInsertedCalendars', async (req,res) =>  {
+	
+	let promises = [];
+	req.body.forEach(event => {
+		event.userID  = req.session.userID;
+		promises.push(eventQueries.upsertEvent(event));
+	});
+
+	Promise.all(promises).then(() => {
+		res.send(true);
+	})
+	.catch(err => {
+		console.log('err storing Inserted Calendars', err);
+		res.send(false);
+	});
+	
+});
+
+router.post('/api/storeGeneratedCalendars', async (req,res) =>  {
+	console.log('length', req.body.length);
+	let promises = [];
+	req.body.forEach(calendar => {
+		calendar.forEach(event => {
+			event.selected = (calendar.selected) ? calendar.selected: false
+			// event.userID  = req.session.userID;
+			calendarQueries.insertEvent(event, req.session.userID);
+
+		})
+		
+		promises.push(eventQueries.upsertEvent(event));
 	});
 });
 
+router.post('/api/storeUserHours', (req, res) => {
+	if (req.session.userID) {
+		let promises = [];
+
+		if(req.body.length > 0) {
+			req.body.forEach(hour => {
+				promises.push(unavailableHoursQueries.upsertUnavailableHoursInfo(hour, req.session.userID))
+			});
+		}
+
+		Promise.all(promises).then(() => {
+			res.send(true);
+		})
+		.catch(err => {
+			console.log('err', err);
+			res.send(false);
+		});
+	} else {
+		res.send(false);
+	}
+
+});
+
+router.get('/api/getEvents', (req,res) =>  {
+	if (req.session.userID) {
+		
+		eventQueries.getEvents(req.session.userID)
+			.then(events => {
+				res.send(events);
+			});
+	}
+});
+
+router.get('/api/getUserInfo', (req,res) =>  {
+	if (req.session.userID) {	
+		userQueries.getUser(req.session.userID)
+			.then(info => {
+				res.send(info);
+			});
+	}
+});
+
+router.post('/api/getUserValues', (req,res) =>  {
+	if (req.session.userID) {
+		if (req.body) {
+			const { columns } = req.body;
+			userQueries.getUserInfo(columns, req.session.userID)
+				.then(info => {
+					res.send(info);
+				});
+		} 
+	}
+});
+
+router.post('/api/logOut', (req,res) =>  {
+	if (!req.session.userID) res.send(false) 
+	else {
+		let id = req.session.userID;
+		req.session.userID = null;
+		res.send(id);
+	}
+	
+});
+
+router.post('/api/getUserInfoByColumns', (req,res) =>  {
+	let data = req.body;
+	userQueries.getSpecificUserInfo(data.columns, data.where)
+		.then(info => {
+			if(info) res.send(info);
+			else res.send(false);
+		});
+});
+
+
+router.post('/api/setCalendarAccess', async (req,res) =>  {
+	if (!req.session.userID) {
+		res.send(false);
+		return;
+	} 
+
+	let columns = ['CALENDARID', 'ACCESSTOKEN'];
+	let data = req.body;
+	let promises = []
+
+	let requesterData = {
+		field:'EMAIL',
+		value: data.requester.email
+	}
+
+	let accepterData = {
+		field:'EMAIL',
+		value: data.accepter.email
+	}
+
+	let requester = await userQueries.getSpecificUserInfo(columns, requesterData);
+	let accepter = await userQueries.getSpecificUserInfo(columns, accepterData);
+
+	if (!requester || !accepter) {
+		res.send(false);
+		return;
+	}
+
+	let accepterPermission = await calendarHelper.addPermissionPerson(data.accepter.email, requester.CALENDARID, requester.ACCESSTOKEN);
+	let requesterPermission = await calendarHelper.addPermissionPerson(data.requester.email, accepter.CALENDARID, accepter.ACCESSTOKEN);
+	
+	if (accepterPermission.etag && accepterPermission.etag) res.send(true);
+	else res.send(false);
+});
+
+
 module.exports = router;
+
+
