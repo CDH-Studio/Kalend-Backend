@@ -2,4 +2,4 @@ server/node_modules
 .vscode/
 ./python_server/images
 **/*.pyc
-server/client-secret.js
+server/config/client-secret.js
